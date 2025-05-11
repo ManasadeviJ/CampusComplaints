@@ -1,0 +1,821 @@
+const https = require('https');
+const fs = require('fs');
+
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser'); // Middleware to parse form data
+const mysql = require('mysql2');  // Add this line at the top
+const port = 3000;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+const app = express();
+
+const xss = require('xss');
+
+const privateKey = fs.readFileSync('key.pem', 'utf8');
+const certificate = fs.readFileSync('cert.pem', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate };
+
+
+// Middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Set EJS as the templating engine
+app.set('view engine', 'ejs');
+
+// MySQL Database Connection
+const db = mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'root',         // Your MySQL username
+    password: 'Devi@1708',         // Your MySQL password
+    database: 'complaint_box'  // Your MySQL database name
+});
+
+db.connect((err) => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+        return;
+    }
+    console.log('Connected to MySQL database');
+});
+
+// Render the complaint submission form
+app.get('/', (req, res) => {
+    res.render('index');
+});
+
+app.post('/submit', (req, res) => {
+    const sanitizedInput = xss(req.body.description);
+    
+
+    let { name, email, subject ,description ,password, anonymous} = req.body;
+
+    if (anonymous === 'true') {
+        name = 'Anonymous';
+        email = 'Anonymous';
+    }
+
+    bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
+        if (err) {
+            console.error('Error hashing password:', err);
+            return res.send('Error processing your request.');
+        }
+    });
+
+    // Insert data into the MySQL database
+    const query = 'INSERT INTO complaints (name, email,subject,password, description) VALUES (?, ?, ?, ?, ?)';
+    db.query(query, [name, email, subject ,hashedPassword, description], (err, result) => {
+        if (err) {
+            console.error('Error inserting data into MySQL:', err);
+            return res.send('Error saving complaint.');
+        }
+        // const complaintId = result.insertId;
+
+        const { complaintId, password } = req.query;
+
+
+        // Render the success page after successful submission
+        res.render('success', { name , id: complaintId});
+    });
+});
+
+
+app.get('/success', (req, res) => {
+    res.render('success', { name: 'User', id: complaintId }); // Use a default name or redirect from here
+});
+
+app.get('/admin', (req, res) => {
+    const query = 'SELECT * FROM complaints ';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching data from MySQL:', err);
+            return res.send('Error fetching complaints.');
+        }
+
+        // Render the admin page and pass complaints to the view
+        res.render('admin', { complaints: results });
+    });
+});
+
+app.post('/update-status/:id', (req, res) => {
+    const complaintId = req.params.id;
+    const newStatus = req.body.status;
+
+    const sql = 'UPDATE complaints SET status = ? WHERE id = ? ';
+
+    db.query(sql, [newStatus, complaintId], (err, result) => {
+        if (err) {
+            console.error('Error updating complaint status:', err);
+            res.status(500).send('Error updating status');
+        } else {
+            res.redirect('/admin');
+        }
+    });
+});
+
+app.get('/dashboard', (req, res) => {
+    const userId = req.session.userId; // Assume userId is stored in session
+    db.query('SELECT * FROM complaints WHERE user_id = ?', [userId], (err, results) => {
+        if (err) throw err;
+        res.render('dashboard', { complaints: results });
+    });
+});
+
+
+// Route to render the track-status form
+app.get('/track-status', (req, res) => {
+    res.render('track-status');  // Renders the form to check complaint status
+});
+app.get('/track-status', (req, res) => {
+    const { complaintId, password } = req.query;
+
+    // Query to fetch complaint by ID
+    db.query('SELECT * FROM complaints WHERE id = ?', [complaintId], (err, result) => {
+        if (err) {
+            console.error('Error fetching complaint:', err);
+            return res.status(500).send('Error fetching complaint.');
+        }
+
+        if (result.length > 0) {
+            const complaint = result[0];
+
+            // Compare input password with hashed password
+            bcrypt.compare(password, complaint.password, (err, isMatch) => {
+                if (err) {
+                    console.error('Error comparing password:', err);
+                    return res.status(500).send('Error comparing password.');
+                }
+
+                if (isMatch) {
+                    // Render the status page with the complaint details
+                    res.render('status', { complaint });
+                } else {
+                    res.send('Incorrect password. Please try again.');
+                }
+            });
+        } else {
+            res.send('Complaint not found. Please check the ID and try again.');
+        }
+    });
+});
+
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(3000, () => {
+  console.log('HTTPS Server is running on port 3000');
+});
+
+// // Create an HTTPS server
+// https.createServer(options, app).listen(443, () => {
+//     console.log('HTTPS server running on port 443');
+// });
+
+// app.use((req, res, next) => {
+//     if (req.protocol === 'http') {
+//         res.redirect(301, `https://${req.headers.host}${req.url}`);
+//     } else {
+//         next();
+//     }
+// });
+
+// // Start the server
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${port}`);
+// });
+
+
+status-tract
+
+ <% if (error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } else { %>
+        <p><strong>Complaint ID:</strong> <%= complaint.id %></p>
+        <!-- <p><strong>Name:</strong> <%= complaint.name %></p> -->
+        <p><strong>Email:</strong> <%= complaint.email %></p>
+        <p><strong>Description:</strong> <%= complaint.description %></p>
+        <p><strong>Status:</strong> <%= complaint.status %></p> 
+        <p><strong>Date Submitted:</strong> <%= complaint.date %></p>
+    <% } %>
+
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #F6F1F1;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+}
+
+form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #FFAD84;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #FFC47E;
+    color: #FFE382;
+    border: none;
+    cursor: pointer;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    background-color: #fff;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+th {
+    background-color: #fff; /* Green header */
+    color: white;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+td {
+    border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+table caption {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #333;
+}
+
+/* Responsive table for mobile */
+@media screen and (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    tr {
+        margin-bottom: 15px;
+        border: #FFE382;
+    }
+
+    td {
+        padding: 10px;
+        text-align: right;
+        position: relative;
+    }
+
+    td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        top: 10px;
+        padding-left: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    th {
+        display: none;
+    }
+}
+ 
+
+ *************
+
+ /* General body styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #F0F4F8;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header styling */
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 2.5rem;
+    color: #333;
+}
+
+/* Form container styling */
+form {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Hover animation for form */
+form:hover {
+    transform: scale(1.02);
+}
+
+/* Input field and text area styling */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #FFF5E4;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: #FF7043;
+    box-shadow: 0 0 5px rgba(255, 112, 67, 0.5);
+}
+
+/* Button styling */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #FF6F61;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+    background-color: #E64A45;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Link styling */
+a {
+    text-decoration: none;
+    color: #FF6F61;
+    font-weight: bold;
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+}
+
+a:hover {
+    color: #E64A45;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    margin: 30px 0;
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+}
+
+th {
+    background-color: #FF6F61;
+    color: white;
+    text-transform: uppercase;
+    font-size: 1rem;
+    letter-spacing: 0.05rem;
+}
+
+td {
+    border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+    background-color: #F7F7F7;
+}
+
+tr:hover {
+    background-color: #FFEBE0;
+}
+
+/* Responsive design for mobile */
+@media screen and (max-width: 768px) {
+    form, table {
+        padding: 20px;
+    }
+
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    tr {
+        margin-bottom: 15px;
+    }
+
+    td {
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+        border-bottom: 1px solid #ccc;
+    }
+
+    td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    th {
+        display: none;
+    }
+
+    button {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}
+
+
+// const https = require('https');
+// const fs = require('fs');
+// const express = require('express');
+// const path = require('path');
+// const bodyParser = require('body-parser');
+// const mysql = require('mysql2');
+// const bcrypt = require('bcrypt');
+// const xss = require('xss');
+// const session = require('express-session'); // Add session middleware
+// const flash = require('connect-flash');
+
+// const passport = require('passport');
+// const LocalStrategy = require('passport-local').Strategy;
+// require('./passport-setup');
+// const port = 3000;
+// const saltRounds = 10;
+
+// const app = express();
+// app.use(flash());
+
+// const privateKey = fs.readFileSync('key.pem', 'utf8');
+// const certificate = fs.readFileSync('cert.pem', 'utf8');
+// const credentials = { key: privateKey, cert: certificate };
+
+// // Middleware
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(session({ secret: 'your_secret_key', resave: false, saveUninitialized: true })); // Session setup
+// app.use((req, res, next) => {
+//     res.locals.success_msg = req.flash('success_msg');
+//     res.locals.error_msg = req.flash('error_msg');
+//     res.locals.error = req.flash('error');
+//     next();
+// });
+// // Set EJS as the templating engine
+// app.set('view engine', 'ejs');
+
+// // MySQL Database Connection
+// const db = mysql.createConnection({
+//     host: '127.0.0.1',
+//     user: 'root', 
+//     password: 'Devi@1708', 
+//     database: 'complaint_box' 
+// });
+
+// passport.use(new LocalStrategy(
+//     (username, password, done) => {
+//         const query = 'SELECT * FROM admins WHERE username = ?';
+//         db.query(query, [username], (err, results) => {
+//             if (err) return done(err);
+//             if (results.length === 0) return done(null, false, { message: 'Incorrect username.' });
+
+//             const user = results[0];
+//             bcrypt.compare(password, user.password, (err, isMatch) => {
+//                 if (err) return done(err);
+//                 if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
+//                 return done(null, user);
+//             });
+//         });
+//     }
+// ));
+
+// passport.serializeUser((user, done) => {
+//     done(null, user.id);
+// });
+
+// passport.deserializeUser((id, done) => {
+//     const query = 'SELECT * FROM admins WHERE id = ?';
+//     db.query(query, [id], (err, results) => {
+//         done(err, results[0]);
+//     });
+// });
+
+
+
+// db.connect((err) => {
+//     if (err) {
+//         console.error('Error connecting to MySQL:', err);
+//         return;
+//     }
+//     console.log('Connected to MySQL database');
+// });
+
+
+// // Initialize Passport
+// app.use(passport.initialize());
+// app.use(passport.session());
+
+
+
+// // GET login page
+// app.get('/login', (req, res) => {
+//     res.render('login', { error: req.flash('error') });
+// });
+
+// // POST login handler using Passport.js
+// app.post('/login', (req, res, next) => {
+//     passport.authenticate('local', {
+//         successRedirect: '/admin/pending',
+//         failureRedirect: '/login',
+//         failureFlash: true
+//     })(req, res, next);
+// });
+
+
+// // Logout route
+// app.get('/logout', (req, res) => {
+//     req.logout(err => {
+//         if (err) console.error(err);
+//         res.redirect('/login');
+//     });
+// });
+
+// app.get('/admin', (req, res) => {
+//     if (!req.isAuthenticated()) {
+//         return res.redirect('/login');
+//     }
+
+//     const query = 'SELECT * FROM complaints';
+//     db.query(query, (err, results) => {
+//         if (err) {
+//             console.error('Error fetching data from MySQL:', err);
+//             return res.send('Error fetching complaints.');
+//         }
+//         res.render('admin', { complaints: results });
+//     });
+// });
+
+// // Admin route to view  resolved complaints
+// app.get('/admin/pending', (req, res) => {
+//     if (!req.isAuthenticated()) {
+//         return res.redirect('/login');
+//     }
+//     const query = 'SELECT * FROM complaints WHERE status = "Pending"';
+//     db.query(query, (err, results) => {
+//         if (err) {
+//             console.error('Error fetching data from MySQL:', err);
+//             return res.send('Error fetching complaints.');
+//         }
+//         res.render('admin', { complaints: results });
+//     });
+// });
+
+// app.get('/login', (req, res) => {
+//     res.render('login');
+// });
+
+// // Render the complaint submission form
+// app.get('/', (req, res) => {
+//     res.render('index');
+// });
+
+// app.post('/submit', (req, res) => {
+//     const sanitizedInput = xss(req.body.description);
+    
+//     let { name, email, subject, description, password, anonymous } = req.body;
+
+//     if (anonymous === 'true') {
+//         name = 'Anonymous';
+//         email = 'Anonymous';
+//     }
+
+//     bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
+//         if (err) {
+//             console.error('Error hashing password:', err);
+//             return res.send('Error processing your request.');
+//         }
+
+//         // Insert data into the MySQL database
+//         const query = 'INSERT INTO complaints (name, email, subject, password, description) VALUES (?, ?, ?, ?, ?)';
+//         db.query(query, [name, email, subject, hashedPassword, sanitizedInput], (err, result) => {
+//             if (err) {
+//                 console.error('Error inserting data into MySQL:', err);
+//                 return res.send('Error saving complaint.');
+//             }
+
+//             const complaintId = result.insertId; // Get the inserted ID
+
+//             // Render the success page after successful submission
+//             res.render('success', { name, id: complaintId });
+//         });
+//     });
+// });
+
+
+
+// app.post('/update-status/:id', (req, res) => {
+//     const complaintId = req.params.id;
+//     const newStatus = req.body.status;
+
+//     // SQL to update the complaint status
+//     const updateStatusSql = 'UPDATE complaints SET status = ? WHERE id = ?';
+
+//     db.query(updateStatusSql, [newStatus, complaintId], (err, result) => {
+//         if (err) {
+//             console.error('Error updating complaint status:', err);
+//             return res.status(500).send('Error updating status');
+//         }
+
+//         // Fetch user info related to the complaint
+//         const fetchComplaintSql = 'SELECT * FROM complaints WHERE id = ?';
+
+//         db.query(fetchComplaintSql, [complaintId], (err, complaintResult) => {
+//             if (err || complaintResult.length === 0) {
+//                 console.error('Error fetching complaint:', err);
+//                 return res.status(500).send('Error fetching complaint');
+//             }
+
+//             const complaint = complaintResult[0];
+//             const userId = complaint.user_id; // Assuming there's a user_id column
+//             const email = complaint.email;
+
+//             // Check if the complaint was submitted anonymously
+//             if (email === 'Anonymous') {
+//                 console.log('Anonymous complaint - no notification sent.');
+//                 return res.redirect('/admin');
+//             }
+
+//             // Insert a notification about the status update
+//             const notificationMessage = `Your complaint status has been updated to: ${newStatus}`;
+//             const insertNotificationSql = 'INSERT INTO notifications (user_id, complaint_id, message) VALUES (?, ?, ?)';
+
+//             db.query(insertNotificationSql, [userId, complaintId, notificationMessage], (err, notificationResult) => {
+//                 if (err) {
+//                     console.error('Error creating notification:', err.sqlMessage || err);
+//                     return res.status(500).send('Error creating notification');
+//                 }
+
+//                 // Optionally, send an email if the user is not anonymous
+//                 const emailMessage = `
+//                     Dear ${complaint.name},
+//                     The status of your complaint (ID: ${complaintId}) has been updated to: ${newStatus}.
+//                 `;
+
+//                 // Function to send email
+//                 // sendEmail(email, 'Complaint Status Update', emailMessage);
+//                 // res.redirect('/admin');
+//             });
+//         });
+//     });
+// });
+
+// const { sendNotification } = require('./emailService');
+
+// app.post('/update-status', (req, res) => {
+//     const { complaintId, newStatus, userEmail } = req.body;
+
+//     // Update the status in the database (implement your logic here)
+
+//     // Send email notification to the user
+//     sendNotification(userEmail, 'Complaint Status Updated', `Your complaint status has been updated to: ${newStatus}`);
+
+//     res.send('Status updated and notification sent!');
+// });
+
+
+// // Route to render the track-status form
+// app.get('/track-status', (req, res) => {
+//     res.render('track-status');  // Renders the form to check complaint status
+// });
+// // Track complaint status
+// app.get('/track-status-result', (req, res) => {
+//     const { complaintId, password } = req.query;
+
+//     // Query to fetch complaint by ID
+//     db.query('SELECT * FROM complaints WHERE id = ?', [complaintId], (err, result) => {
+//         if (err) {
+//             console.error('Error fetching complaint:', err);
+//             return res.status(500).render('status-result', { error: 'Error fetching complaint.' });
+//         }
+
+//         if (result.length > 0) {
+//             const complaint = result[0];
+
+//             // Compare input password with hashed password
+//             bcrypt.compare(password, complaint.password, (err, isMatch) => {
+//                 if (err) {
+//                     console.error('Error comparing password:', err);
+//                     return res.status(500).render('status-result', { error: 'Error comparing password.' });
+//                 }
+
+//                 if (isMatch) {
+//                     // Render the status page with the complaint details
+//                     res.render('status-result', { complaint, error: null });
+//                 } else {
+//                     res.render('status-result', { complaint: null, error: 'Incorrect password. Please try again.' });
+//                 }
+//             });
+//         } else {
+//             res.render('status-result', { complaint: null, error: 'Complaint not found. Please check the ID and try again.' });
+//         }
+//     });
+// });
+
+// passport.use(new LocalStrategy(
+//     (username, password, done) => {
+//         console.log(`Attempting login for username: ${username}`); // Log username attempt
+//         const query = 'SELECT * FROM admins WHERE username = ?';
+//         db.query(query, [username], (err, results) => {
+//             if (err) {
+//                 console.error('Database error during login:', err); // Log DB errors
+//                 return done(err);
+//             }
+//             if (results.length === 0) {
+//                 console.log(`User not found: ${username}`); // Log user not found
+//                 return done(null, false, { message: 'Incorrect username.' });
+//             }
+
+//             const user = results[0];
+//             console.log(`User found: ${user.username}, comparing password...`); // Log user found
+
+//             bcrypt.compare(password, user.password, (err, isMatch) => {
+//                 if (err) {
+//                     console.error('Bcrypt comparison error:', err); // Log bcrypt errors
+//                     return done(err);
+//                 }
+//                 if (!isMatch) {
+//                     console.log(`Password mismatch for user: ${username}`); // Log password mismatch
+//                     return done(null, false, { message: 'Incorrect password.' });
+//                 }
+//                 console.log(`Password match for user: ${username}. Login successful.`); // Log success
+//                 return done(null, user);
+//             });
+//         });
+//     }
+// ));
+
+// // Create HTTPS server
+// const httpsServer = https.createServer(credentials, app);
+
+// httpsServer.listen(3000, () => {
+//     console.log(`HTTPS Server is running on port https://localhost:${port}`);
+// });

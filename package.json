@@ -1,0 +1,28 @@
+{
+  "name": "webessenproject",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "https": "^1.0.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.11.3",
+    "nodemailer": "^6.10.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "xss": "^1.0.15"
+  },
+  "description": ""
+}

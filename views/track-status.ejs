@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Complaint Status - Complaint Box</title> <!-- Descriptive Title -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%# --- START: Minimal Wrapper for Centering --- %>
+    <div class="form-page-container">
+
+        <%# --- START: Wrapper for Logo and App Name --- %>
+        <div class="logo-container">
+          <img src="logo.png" alt="Complaint Box Logo"> <%# Add your logo %>
+          <h2>Complaint Box</h2> 
+        </div>
+        <%# --- END: Wrapper for Logo and App Name --- %>
+
+        <%# --- START: Wrapper for Form Box Styling --- %>
+        <div class="form-container track-status-form"> <%# Specific class if needed %>
+
+            <h1>Track Your Complaint Status</h1> <%# Title for this page %>
+
+             <%# Display flash messages if any (e.g., if redirected back here) %>
+             <% if (error_msg && error_msg.length > 0) { %>
+                <div class="alert alert-danger"><%- error_msg %></div>
+            <% } %>
+             <% if (success_msg && success_msg.length > 0) { %>
+                <div class="alert alert-success"><%- success_msg %></div>
+            <% } %>
+
+            <%# Your existing form %>
+            <form action="/track-status-result" method="GET">
+                <%# CSRF usually not needed for GET requests, but check if your setup requires it %>
+
+                <div> <%# Wrapper for layout %>
+                    <label for="complaintId">Enter Complaint ID:</label>
+                    <input type="text" id="complaintId" name="complaintId" placeholder="Enter the ID received after submission" required>
+                </div>
+
+                <div> <%# Wrapper for layout %>
+                    <label for="password">Enter Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter the password you created" required>
+                </div>
+
+                <button type="submit">Check Status</button>
+            </form>
+
+            <div class="form-links">
+                <a href="/login">Submit a New Complaint</a>
+            </div>
+
+        </div>
+        <%# --- END: Wrapper for Form Box Styling --- %>
+
+    </div>
+    <%# --- END: Minimal Wrapper for Centering --- %>
+
+    <%# Removed script tag unless app.js is specifically needed here %>
+    <%# <script src="/app.js"></script> %>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>status tracking</title>
+        <link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+    <form action="/track-status-result" method="GET">
+        <label for="complaintId">Enter Complaint ID:</label>
+        <input type="text" id="complaintId" name="complaintId" required>
+
+        <label for="password">Enter Password:</label>
+        <input type="password" id="password" name="password" required>
+        
+        <button type="submit">Check Status</button>
+    </form>
+    <script src="app.js"></script>
+
+</body>
+</html> -->

@@ -1,0 +1,172 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Admin Login</h1>
+  <% if (error && error.length > 0) { %>
+    <div style="color: red;"><%= error[0] %></div>
+  <% } %>
+  <form action="/login" method="POST">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+  <script src="/js/app.js"></script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+    <h1>Admin Login</h1>
+    <form action="/login" method="POST">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <script src="app.js"></script>
+
+</body>
+</html> -->
+
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit a Complaint - Complaint Box</title> <!-- Descriptive Title -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Optional: Favicon link -->
+    <!-- <link rel="icon" href="/images/favicon.ico" type="image/x-icon"> -->
+</head>
+<body>
+    <div class="form-page-container"> <%# Outer container for centering %>
+
+         <div class="logo-container">
+            <img src="/images/logo.png" alt="Complaint Box Logo"> <%# Add your logo image %>
+            <h2>Complaint Box</h2> <%# App Name %>
+        </div>
+
+        <div class="form-container submit-form"> <%# Apply generic form container style %>
+            <h1>Submit Your Complaint</h1>
+            <p class="form-description">Please provide the details below. Your feedback is important.</p>
+
+             <%# Display flash messages (using alert classes from CSS) %>
+             <% if (error_msg && error_msg.length > 0) { %>
+                <div class="alert alert-danger"><%- error_msg %></div>
+            <% } %>
+             <% if (success_msg && success_msg.length > 0) { %>
+                <div class="alert alert-success"><%- success_msg %></div>
+            <% } %>
+
+            <form action="/submit" method="POST">
+                 <%# *** Add CSRF Token if using csurf middleware *** %>
+                 <%# Make sure csrfToken is passed or available globally %>
+                 <% if (typeof csrfToken !== 'undefined') { %>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                 <% } %>
+
+                <div class="form-section non-anonymous"> <%# Section for non-anonymous fields %>
+                    <div>
+                        <label for="name">Your Name:</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your full name" >
+                    </div>
+                    <div>
+                        <label for="email">Your Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email address">
+                    </div>
+                </div>
+
+                <div class="form-section"> <%# Common section %>
+                     <!-- <div>
+                        <label for="subject">Subject:</label>
+                        <input type="text" id="subject" name="subject" placeholder="Brief subject of your complaint" required>
+                    </div> -->
+                    <div>
+                        <label for="Subject">Category:</label>
+                        <select id="subject" name="subject" required>
+                            <option value="">--Select Complaint Category--</option>
+                            <option value="academic">Academic Issues</option>
+                            <option value="hostel">Hostel/Accommodation</option>
+                            <option value="infrastructure">Infrastructure</option>
+                            <option value="technical">IT/Technical Issues</option>
+                            <option value="library">Library</option>
+                            <option value="transport">Transport</option>
+                            <option value="canteen">Canteen/Food Services</option>
+                            <option value="harassment">Harassment/Bullying</option>
+                            <option value="cleanliness">Cleanliness and Hygiene</option>
+                            <option value="others">Others</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description" placeholder="Describe your complaint in detail" required></textarea>
+                    </div>
+                     <div>
+                        <label for="password">Create Password (to track status):</label>
+                        <input type="password" id="password" name="password" placeholder="Required to check status later" required>
+                        <small class="field-hint">You'll need this password and the Complaint ID to track your submission.</small>
+                    </div>
+                </div>
+
+                <div class="form-section anonymous-option">
+                    <label for="anonymous">
+                        <input type="checkbox" id="anonymous" name="anonymous" value="true">
+                        Submit Anonymously? (Name and Email will not be recorded)
+                    </label>
+                     <!-- <small class="field-hint">If checked, Name and Email fields will be ignored.</small> -->
+                </div>
+
+                <button type="submit" class="button">Submit Complaint</button>
+            </form>
+
+             <div class="form-links">
+                <a href="/track-status">Track Your Complaint Status</a> 
+                <a href="/adminlogin"> | Admin Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple JS to hide/show name/email based on checkbox -->
+    <script>
+        const anonymousCheckbox = document.getElementById('anonymous');
+        const nonAnonymousSection = document.querySelector('.non-anonymous');
+
+        if (anonymousCheckbox && nonAnonymousSection) {
+            // Initial state check on page load (if form is re-rendered with checkbox checked)
+            nonAnonymousSection.style.display = anonymousCheckbox.checked ? 'none' : 'block';
+
+            anonymousCheckbox.addEventListener('change', function() {
+                nonAnonymousSection.style.display = this.checked ? 'none' : 'block';
+                // Optional: clear or disable fields when hidden
+                if (this.checked) {
+                    document.getElementById('name').value = '';
+                    document.getElementById('email').value = '';
+                    // You might want to remove 'required' attribute here if it was initially set
+                    // document.getElementById('name').required = false;
+                    // document.getElementById('email').required = false;
+                } else {
+                     // If you removed 'required', you might need to add it back
+                    // document.getElementById('name').required = true; // Or based on initial state
+                    // document.getElementById('email').required = true;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+/* === Global Reset & Base === */
+*,
+*::before,
+*::after {
+    box-sizing: border-box; /* Better layout control */
+}
+
+.delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6; /* Slightly muted background */
+    color: #3a3a3a; /* Slightly softer black */
+    line-height: 1.6;
+    font-size: 16px; /* Base font size */
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* === Utility Classes === */
+.container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* === Header (from partials/header.ejs) === */
+.admin-header {
+    background-color: #2c3e50; /* Dark blue/grey header */
+    color: #ecf0f1; /* Light text color */
+    padding: 15px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 15px; /* Space between items */
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #ffffff;
+    text-align: left; /* Align left within header */
+}
+
+.nav-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Space between nav items */
+}
+
+.nav-links li {
+    margin: 0; /* Remove default margin */
+}
+
+.nav-button,
+.logout-button {
+    display: inline-block; /* Allow padding */
+    color: #ffffff;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    background-color: #34495e; /* Slightly lighter button bg */
+    border: none;
+    font-size: 0.95rem;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    cursor: pointer;
+}
+
+.nav-button:hover,
+.logout-button:hover {
+    background-color: #4e6a85; /* Lighter hover */
+}
+.nav-button:active,
+.logout-button:active {
+    transform: scale(0.98);
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.welcome-message {
+    font-style: italic;
+    color: #bdc3c7; /* Muted grey */
+}
+
+/* === Main Content Area === */
+.main-admin-content, /* Class for admin page main area */
+.form-container /* Class for login/track pages */
+{
+    margin: 30px auto;
+    padding: 25px 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.main-admin-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1; /* Light separator */
+    font-size: 1.8rem;
+    color: #2c3e50; /* Match header color */
+}
+
+/* === Forms (Login, Track Status, Complaint Submit) === */
+/* Applied via .form-container class or similar */
+form {
+     /* Removed max-width here, applied by container */
+    /* Removed transform: scale(1.02); - can be distracting */
+}
+
+label { /* Add labels for accessibility */
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select /* Add select styling */
+{
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px; /* Consistent margin */
+    border: 1px solid #dcdcdc; /* Softer border */
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #fdfdfd; /* Very light background */
+    color: #333;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #3498db; /* Professional blue focus */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); /* Subtle glow */
+}
+
+textarea {
+    min-height: 120px; /* Good default height */
+    resize: vertical; /* Allow vertical resize */
+}
+
+/* === Buttons (General & Primary) === */
+button,
+.button { /* Use .button class for link-styled buttons if needed */
+    display: inline-block; /* Allows padding etc. */
+    width: 100%; /* Default form button */
+    padding: 12px 20px;
+    background-color: #e74c3c; /* Keep coral as primary action */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    text-decoration: none; /* For .button class used on <a> tags */
+}
+
+button:hover,
+.button:hover {
+    background-color: #c0392b; /* Darker coral */
+}
+
+button:active,
+.button:active {
+    transform: scale(0.98);
+}
+
+/* Specific button adjustments if needed */
+.button-small { /* Example for smaller buttons like update status */
+     width: auto; /* Don't force full width */
+     padding: 6px 12px;
+     font-size: 0.9rem;
+     background-color: #3498db; /* Use blue for secondary actions */
+}
+.button-small:hover {
+    background-color: #2980b9; /* Darker blue */
+}
+
+
+/* === Links === */
+a {
+    color: #3498db; /* Use primary blue for links */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #2980b9; /* Darker blue */
+    text-decoration: underline;
+}
+
+/* Links acting as buttons */
+a.button {
+    color: white; /* Override default link color */
+    text-decoration: none; /* Remove underline */
+}
+a.button:hover {
+     color: white; /* Keep white on hover */
+     text-decoration: none; /* Keep underline removed */
+}
+
+
+/* === Tables (Admin Page) === */
+.table-container { /* Add this div around your table in admin.ejs for responsiveness */
+    overflow-x: auto; /* Enable horizontal scrolling on small screens */
+    margin: 30px 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Prevent table from becoming too narrow before scrolling starts */
+}
+
+th, td {
+    padding: 12px 15px; /* Slightly reduced padding */
+    text-align: left;
+    vertical-align: middle; /* Better vertical alignment */
+    border-bottom: 1px solid #ecf0f1; /* Lighter border */
+}
+
+th {
+    background-color: #ecf0f1; /* Light grey header */
+    color: #34495e; /* Dark blue/grey text */
+    font-weight: 600; /* Slightly bolder */
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap; /* Prevent headers breaking */
+}
+
+tr:nth-child(even) td { /* Apply to td for better border visibility */
+    background-color: #f9f9f9;
+}
+
+tr:hover td { /* Apply to td */
+    background-color: #e8f4fd; /* Light blue hover */
+}
+
+/* Form inside table */
+.update-status-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px; /* Give form elements space */
+}
+
+.update-status-form select {
+    flex-grow: 1; /* Allow select to take space */
+    margin-bottom: 0; /* Override default margin */
+    padding: 6px 10px; /* Smaller padding */
+    font-size: 0.9rem;
+}
+
+.update-status-form button {
+     width: auto; /* Don't force full width */
+     padding: 6px 12px;
+     font-size: 0.9rem;
+     background-color: #2ecc71; /* Green for update action */
+}
+.update-status-form button:hover {
+    background-color: #27ae60; /* Darker green */
+}
+
+/* === Alert / Flash Messages === */
+.alert {
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    font-size: 0.95rem;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger, /* Combine error styles */
+.alert-error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+/* === Additions/Modifications for Form Pages (Login, Index, Track Status) === */
+
+/* Centering Container for Form Pages */
+.form-page-container {
+    display: flex; /* Use flexbox */
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center children horizontally */
+    justify-content: flex-start; /* Align children to the top */
+    min-height: 95vh;
+    padding: 30px 20px;
+    box-sizing: border-box;
+}
+
+/* Logo and App Name Styling */
+.logo-container {
+    /* display: flex; */ /* Flex is not needed here if items inside are centered via text-align */
+    /* align-items: center; */
+    /* gap: 10px; */ /* Gap is only useful if display:flex is used and items are side-by-side */
+
+    text-align: center; /* Center the image (if inline/inline-block) and the h2 text */
+    margin-bottom: 30px; /* Space below the logo container */
+    width: 100%; /* Allow text-align center to work effectively */
+}
+
+.logo-container img {
+    max-width: 90px;
+    height: auto;
+    margin-bottom: 10px; /* Space between image and text */
+    display: inline-block; /* Allows text-align center to work on the image */
+}
+
+.logo-container h2 {
+    margin: 0;
+    font-size: 1.7rem;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Form Container Refinements (Mostly unchanged) */
+.form-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 35px 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Center H1 and button inside */
+}
+
+.form-container h1 {
+    font-size: 1.7rem;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #3a3a3a;
+    font-weight: 600;
+}
+
+
+/* === Responsive Design === */
+@media screen and (max-width: 768px) {
+    .header-content {
+        flex-direction: column; /* Stack header items */
+        align-items: flex-start; /* Align items left */
+    }
+
+    .nav-links ul {
+        flex-direction: column; /* Stack nav items */
+        align-items: flex-start;
+        width: 100%; /* Take full width */
+        margin-top: 10px;
+    }
+
+     .nav-button,
+     .logout-button {
+         width: 100%; /* Make header buttons full width */
+         text-align: center;
+         margin-bottom: 5px; /* Space when stacked */
+     }
+
+     .user-actions {
+        width: 100%;
+        justify-content: space-between; /* Space out welcome/logout */
+        margin-top: 10px;
+     }
+
+    .main-admin-content,
+    .form-container {
+        padding: 20px;
+    }
+
+    /* Removed the table stacking rules in favor of horizontal scroll */
+    /* If you prefer stacking, uncomment the block below and add */
+    /* data-label attributes to your <td> elements in admin.ejs */
+    /*
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    tr {
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        background-color: #fff; // Reset background for individual cards
+    }
+
+    td {
+        position: relative;
+        padding-left: 45%; // Make space for label
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        min-height: 30px; // Ensure space even if empty
+        display: flex; // Helps alignment
+        align-items: center;
+    }
+    td:last-child {
+        border-bottom: 0;
+    }
+
+    td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 40%; // Limit label width
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        color: #555;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    th {
+        display: none; // Hide table headers
+    }
+
+    .update-status-form {
+        flex-direction: column; // Stack form elements
+        align-items: stretch; // Make them full width
+    }
+    .update-status-form button {
+        width: 100%; // Make button full width
+    }
+    */
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        font-size: 15px; /* Slightly smaller base font on very small screens */
+    }
+
+    .admin-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .main-admin-content,
+    .form-container {
+        padding: 15px;
+    }
+
+    button, .button {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+    }
+    th, td {
+         padding: 10px;
+    }
+}

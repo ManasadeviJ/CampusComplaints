@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Complaint Box</title>
+  <link rel="stylesheet" href="/css/style.css"> <!-- Link to your existing CSS -->
+</head>
+<body>
+  <%# --- Outer container for centering the whole block --- %>
+  <div class="form-page-container">
+
+    <%# --- Container for Logo and App Name --- %>
+    <div class="logo-container">
+      <img src="/images/logo.png" alt="Complaint Box Logo"> 
+      <h2>Complaint Box</h2>
+    </div>
+
+    <%# --- Container for the white form box --- %>
+    <div class="form-container login-form">
+
+      <h1>Admin Login</h1>
+
+      <%# Display Flash Messages for Errors or Success (e.g., after logout) %>
+      <% if (error && error.length > 0) { %>
+        <%# Error from Passport failureFlash %>
+        <div class="alert alert-danger"><%- error %></div>
+      <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+         <%# General error messages %>
+        <div class="alert alert-danger"><%- error_msg %></div>
+      <% } %>
+      <% if (success_msg && success_msg.length > 0) { %>
+         <%# Success messages (like successful logout) %>
+        <div class="alert alert-success"><%- success_msg %></div>
+      <% } %>
+
+      <%# --- The Login Form --- %>
+      <form action="/login" method="POST">
+
+        <%# CSRF Protection Input (Essential if using csurf middleware) %>
+        <%# Make sure your server passes 'csrfToken' to this view or makes it global %>
+        <% if (typeof csrfToken !== 'undefined') { %>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <% } %>
+
+        <%# Username Input %>
+        <%# Label is visually hidden by 'sr-only' class from CSS, but present for accessibility %>
+        <label for="username" class="sr-only">Username</label>
+        <input type="text" id="username" name="username" placeholder="Username" required>
+
+        <%# Password Input - DO NOT PRE-FILL VALUE %>
+        <label for="password" class="sr-only">Password</label>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+
+        <button type="submit">Login</button>
+      </form>
+
+      <%# Optional: Link back to the main complaint form %>
+      <div class="form-links">
+        <a href="/login">Back to Complaint Form</a>
+      </div>
+
+    </div> <%# --- End form-container --- %>
+
+  </div> <%# --- End form-page-container --- %>
+
+</body>
+</html>

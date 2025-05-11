@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN PAGE</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Inside your <head> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+
+</head>
+<body>
+    <%- include('partials/header') %>
+  <table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% complaints.forEach(function(complaint) { %>
+        <tr>
+            <td><%= complaint.id %></td>
+            <td><%= complaint.name %></td>
+            <td><%= complaint.email %></td>
+            <td><%= complaint.subject %></td>
+            <td><%= complaint.description %></td>
+            
+            <!-- Show the current status of the complaint -->
+            <td><%= complaint.status %></td>
+
+            <!-- Action column: form to update the status -->
+            <!-- <td>
+                <form action="/update-status/<%= complaint.id %>" method="POST">
+                    <select name="status">
+                        <option value="pending" <%= complaint.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="resolved" <%= complaint.status === 'resolved' ? 'selected' : '' %>>Resolved</option>
+                    </select>
+                    <button type="submit">Update</button>
+                </form>
+            </td> -->
+            <td>
+                <!-- Update Status Form -->
+                <form action="/update-status/<%= complaint.id %>" method="POST" style="display:inline-block;">
+                    <select name="status">
+                        <option value="pending" <%= complaint.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="resolved" <%= complaint.status === 'resolved' ? 'selected' : '' %>>Resolved</option>
+                        <option value="in-progress" <%= complaint.status === 'in-progress' ? 'selected' : '' %>>In progress</option>
+                        <option value="rejected" <%= complaint.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                    </select>
+                    <button type="submit">Update</button>
+                </form>
+            
+                <!-- Delete Complaint Form -->
+                <form action="/delete-complaint/<%= complaint.id %>" method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this complaint?');">
+                    <button type="submit" style="background: none; border: none; cursor: pointer;">
+                        <img src="/images/bin.png"  class="delete" alt="Delete" style="width: 20px; height: 20px;">
+                    </button>
+                </form>
+            </td>
+        </tr>
+        <% }); %>
+    </tbody>
+</table>
+
+  
+      <script src="app.js"></script>
+</body>
+</html>
